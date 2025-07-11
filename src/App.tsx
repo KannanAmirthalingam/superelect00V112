@@ -9,10 +9,11 @@ import { InwardEntry } from './components/InwardEntry';
 import { Reports } from './components/Reports';
 import { MasterData } from './components/MasterData';
 import { UserRoles } from './components/UserRoles';
-import { Loader, AlertCircle } from 'lucide-react';
+import { Loader, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { dataService } from './services/dataService';
 
 function App() {
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const { user, loading: authLoading, isAuthenticated, connectionStatus } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
 
   // Show login if not authenticated
@@ -56,6 +57,28 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header currentView={currentView} onViewChange={setCurrentView} />
+      
+      {/* Connection Status Bar */}
+      {connectionStatus !== 'connected' && (
+        <div className={`px-4 py-2 text-center text-sm ${
+          connectionStatus === 'connecting' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+        }`}>
+          <div className="flex items-center justify-center">
+            {connectionStatus === 'connecting' ? (
+              <>
+                <Loader className="h-4 w-4 mr-2 animate-spin" />
+                Connecting to Firebase...
+              </>
+            ) : (
+              <>
+                <WifiOff className="h-4 w-4 mr-2" />
+                Firebase connection lost. Some features may not work properly.
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderView()}
       </main>

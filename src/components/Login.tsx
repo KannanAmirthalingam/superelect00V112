@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { CircuitBoard, User, Lock, Eye, EyeOff, Loader } from 'lucide-react';
+import { CircuitBoard, User, Lock, Eye, EyeOff, Loader, Wifi, WifiOff } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth.tsx';
 
 export const Login: React.FC = () => {
-  const { signIn } = useAuth();
+  const { signIn, connectionStatus } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -29,6 +29,32 @@ export const Login: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
+        {/* Connection Status */}
+        <div className="text-center">
+          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${
+            connectionStatus === 'connected' ? 'bg-green-100 text-green-800' :
+            connectionStatus === 'connecting' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-red-100 text-red-800'
+          }`}>
+            {connectionStatus === 'connected' ? (
+              <>
+                <Wifi className="h-4 w-4 mr-1" />
+                Connected to Firebase
+              </>
+            ) : connectionStatus === 'connecting' ? (
+              <>
+                <Loader className="h-4 w-4 mr-1 animate-spin" />
+                Connecting to Firebase...
+              </>
+            ) : (
+              <>
+                <WifiOff className="h-4 w-4 mr-1" />
+                Connection Failed
+              </>
+            )}
+          </div>
+        </div>
+
         <div className="text-center">
           <div className="mx-auto h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center">
             <CircuitBoard className="h-8 w-8 text-white" />
@@ -107,10 +133,18 @@ export const Login: React.FC = () => {
           <div className="mt-6 p-4 bg-gray-50 rounded-md">
             <h3 className="text-sm font-medium text-gray-700 mb-2">Getting Started:</h3>
             <div className="text-xs text-gray-600 space-y-1">
-              <p><strong>First Time Setup:</strong></p>
+              <p><strong>First Time Setup (if Firebase is connected):</strong></p>
               <p>• Email: admin@smw.com</p>
               <p>• Password: Any password</p>
               <p>This will create your initial admin account.</p>
+              {connectionStatus !== 'connected' && (
+                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                  <p className="text-yellow-800 text-xs">
+                    <strong>Note:</strong> Firebase connection is required for first-time setup.
+                    Please check your internet connection and Firebase configuration.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
