@@ -106,9 +106,12 @@ export const Login: React.FC = () => {
 
           <div className="mt-6 p-4 bg-gray-50 rounded-md">
             <h3 className="text-sm font-medium text-gray-700 mb-2">Getting Started:</h3>
-            <p className="text-xs text-gray-600">
-              Create your first admin user through the Master Data section after initial setup.
-            </p>
+            <div className="text-xs text-gray-600 space-y-1">
+              <p><strong>First Time Setup:</strong></p>
+              <p>• Email: admin@smw.com</p>
+              <p>• Password: Any password</p>
+              <p>This will create your initial admin account.</p>
+            </div>
           </div>
         </div>
       </div>
