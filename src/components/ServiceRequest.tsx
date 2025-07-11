@@ -41,6 +41,14 @@ export const ServiceRequest: React.FC = () => {
     return matchesSearch && matchesMill;
   });
 
+  const getIssueForBoard = (boardId: string): string => {
+    return 'Service required'; // Generic default, user will specify actual issue
+  };
+
+  const getPriorityForBoard = (boardId: string): 'High' | 'Medium' | 'Low' => {
+    return 'Medium'; // Default priority
+  };
+
   const ServiceRequestForm: React.FC<{ 
     board?: Board; 
     onClose: () => void; 
