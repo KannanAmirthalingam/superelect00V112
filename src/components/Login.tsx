@@ -5,8 +5,8 @@ import { useAuth } from '../hooks/useAuth';
 export const Login: React.FC = () => {
   const { signIn } = useAuth();
   const [formData, setFormData] = useState({
-    email: 'admin@smw.com',
-    password: 'admin123'
+    email: '',
+    password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -105,10 +105,9 @@ export const Login: React.FC = () => {
           </form>
 
           <div className="mt-6 p-4 bg-gray-50 rounded-md">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Getting Started:</h3>
             <p className="text-xs text-gray-600">
-              Email: admin@smw.com<br />
-              Password: admin123
+              Create your first admin user through the Master Data section after initial setup.
             </p>
           </div>
         </div>

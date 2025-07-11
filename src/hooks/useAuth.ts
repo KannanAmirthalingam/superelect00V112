@@ -22,7 +22,13 @@ export const useAuth = () => {
     const signIn = async (email: string, password: string): Promise<User> => {
       setLoading(true);
       try {
-        const authenticatedUser = dataService.authenticateUser(email, password);
+        let authenticatedUser = dataService.authenticateUser(email, password);
+        
+        // If no users exist and trying to login as admin, create initial admin user
+        if (!authenticatedUser && email === 'admin@smw.com' && dataService.getUsers().length === 0) {
+          authenticatedUser = dataService.createInitialAdminUser();
+        }
+        
         if (!authenticatedUser) {
           throw new Error('Invalid credentials');
         }

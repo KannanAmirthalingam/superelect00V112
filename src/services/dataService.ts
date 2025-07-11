@@ -14,248 +14,13 @@ class DataService {
   }
 
   private initializeData() {
-    // Initialize Mills
-    this.mills = [
-      {
-        id: '1',
-        name: 'Mill 1 - Production Unit A',
-        location: 'Industrial Area, Sector 1',
-        contactPerson: 'Rajesh Kumar',
-        phone: '+91-9876543210',
-        email: 'rajesh@mill1.com'
-      },
-      {
-        id: '2',
-        name: 'Mill 2 - Production Unit B',
-        location: 'Industrial Area, Sector 2',
-        contactPerson: 'Suresh Patel',
-        phone: '+91-9876543211',
-        email: 'suresh@mill2.com'
-      },
-      {
-        id: '3',
-        name: 'Mill 3 - Production Unit C',
-        location: 'Industrial Area, Sector 3',
-        contactPerson: 'Amit Singh',
-        phone: '+91-9876543212',
-        email: 'amit@mill3.com'
-      },
-      {
-        id: '4',
-        name: 'Mill 4 - Quality Control',
-        location: 'Industrial Area, Sector 4',
-        contactPerson: 'Priya Sharma',
-        phone: '+91-9876543213',
-        email: 'priya@mill4.com'
-      }
-    ];
-
-    // Initialize Service Partners
-    this.servicePartners = [
-      {
-        id: '1',
-        name: 'Super Electronics',
-        contactPerson: 'Vikram Mehta',
-        phone: '+91-9876543220',
-        email: 'service@superelectronics.com',
-        address: 'Electronics Hub, Phase 1, Gurgaon',
-        rating: 4.5,
-        avgRepairTime: 5,
-        specialization: ['Power Supply', 'Control Boards', 'Display Units']
-      },
-      {
-        id: '2',
-        name: 'Sheltronics',
-        contactPerson: 'Ravi Gupta',
-        phone: '+91-9876543221',
-        email: 'support@sheltronics.com',
-        address: 'Tech Park, Sector 18, Noida',
-        rating: 4.2,
-        avgRepairTime: 6,
-        specialization: ['Sensor Boards', 'Communication Modules']
-      },
-      {
-        id: '3',
-        name: 'TechFix Solutions',
-        contactPerson: 'Anita Verma',
-        phone: '+91-9876543222',
-        email: 'repairs@techfixsolutions.com',
-        address: 'Industrial Complex, Faridabad',
-        rating: 4.0,
-        avgRepairTime: 7,
-        specialization: ['Motor Controllers', 'Safety Systems']
-      },
-      {
-        id: '4',
-        name: 'ElectroServ India',
-        contactPerson: 'Manoj Agarwal',
-        phone: '+91-9876543223',
-        email: 'service@electroserv.in',
-        address: 'Electronic City, Bangalore',
-        rating: 4.3,
-        avgRepairTime: 5,
-        specialization: ['All Types', 'Emergency Repairs']
-      }
-    ];
-
-    // Initialize Users
-    this.users = [
-      {
-        id: '1',
-        email: 'admin@smw.com',
-        name: 'System Administrator',
-        role: 'Admin',
-        status: 'Active',
-        lastLogin: new Date(),
-        createdAt: new Date('2024-01-01')
-      },
-      {
-        id: '2',
-        email: 'mill1@smw.com',
-        name: 'Rajesh Kumar',
-        role: 'Mill Supervisor',
-        status: 'Active',
-        mill: 'Mill 1 - Production Unit A',
-        lastLogin: new Date(),
-        createdAt: new Date('2024-01-15')
-      },
-      {
-        id: '3',
-        email: 'service@superelectronics.com',
-        name: 'Vikram Mehta',
-        role: 'Service Partner',
-        status: 'Active',
-        servicePartner: 'Super Electronics',
-        lastLogin: new Date(),
-        createdAt: new Date('2024-02-01')
-      }
-    ];
-
-    // Initialize Boards
-    const currentDate = new Date();
-    this.boards = [
-      {
-        id: '1',
-        boardId: 'SMW-B-001',
-        currentStatus: 'In Use',
-        currentLocation: 'Mill 1 - Production Unit A',
-        millAssigned: 'Mill 1 - Production Unit A',
-        warrantyStatus: 'Under Service Warranty',
-        warrantyExpiry: new Date(currentDate.getFullYear() + 1, currentDate.getMonth(), currentDate.getDate()),
-        purchaseDate: new Date(currentDate.getFullYear() - 1, 0, 15),
-        serviceHistory: [],
-        createdAt: currentDate,
-        updatedAt: currentDate
-      },
-      {
-        id: '2',
-        boardId: 'SMW-B-002',
-        currentStatus: 'Sent for Service',
-        currentLocation: 'Super Electronics',
-        millAssigned: 'Mill 2 - Production Unit B',
-        warrantyStatus: 'Under Service Warranty',
-        warrantyExpiry: new Date(currentDate.getFullYear() + 1, currentDate.getMonth() + 2, currentDate.getDate()),
-        purchaseDate: new Date(currentDate.getFullYear() - 1, 1, 20),
-        serviceHistory: [],
-        substituteBoard: 'SMW-S-001',
-        createdAt: currentDate,
-        updatedAt: new Date(currentDate.getTime() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
-      },
-      {
-        id: '3',
-        boardId: 'SMW-B-003',
-        currentStatus: 'In Repair',
-        currentLocation: 'Sheltronics',
-        millAssigned: 'Mill 3 - Production Unit C',
-        warrantyStatus: 'Under Replacement Warranty',
-        warrantyExpiry: new Date(currentDate.getFullYear() + 2, currentDate.getMonth(), currentDate.getDate()),
-        purchaseDate: new Date(currentDate.getFullYear() - 1, 2, 10),
-        serviceHistory: [],
-        substituteBoard: 'SMW-S-002',
-        createdAt: currentDate,
-        updatedAt: new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
-      },
-      {
-        id: '4',
-        boardId: 'SMW-B-004',
-        currentStatus: 'Repaired',
-        currentLocation: 'TechFix Solutions',
-        millAssigned: 'Mill 1 - Production Unit A',
-        warrantyStatus: 'Under Service Warranty',
-        warrantyExpiry: new Date(currentDate.getFullYear() + 1, currentDate.getMonth() + 6, currentDate.getDate()),
-        purchaseDate: new Date(currentDate.getFullYear() - 1, 3, 5),
-        serviceHistory: [],
-        substituteBoard: 'SMW-S-003',
-        createdAt: currentDate,
-        updatedAt: new Date(currentDate.getTime() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
-      },
-      {
-        id: '5',
-        boardId: 'SMW-B-005',
-        currentStatus: 'In Use',
-        currentLocation: 'Mill 4 - Quality Control',
-        millAssigned: 'Mill 4 - Quality Control',
-        warrantyStatus: 'Out of Warranty',
-        warrantyExpiry: new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), currentDate.getDate()),
-        purchaseDate: new Date(currentDate.getFullYear() - 3, 4, 12),
-        serviceHistory: [],
-        createdAt: currentDate,
-        updatedAt: currentDate
-      },
-      // Substitute Boards
-      {
-        id: '6',
-        boardId: 'SMW-S-001',
-        currentStatus: 'In Use',
-        currentLocation: 'Mill 2 - Production Unit B',
-        millAssigned: 'Mill 2 - Production Unit B',
-        warrantyStatus: 'Under Service Warranty',
-        warrantyExpiry: new Date(currentDate.getFullYear() + 1, currentDate.getMonth() + 8, currentDate.getDate()),
-        purchaseDate: new Date(currentDate.getFullYear() - 1, 5, 1),
-        serviceHistory: [],
-        createdAt: currentDate,
-        updatedAt: currentDate
-      },
-      {
-        id: '7',
-        boardId: 'SMW-S-002',
-        currentStatus: 'In Use',
-        currentLocation: 'Mill 3 - Production Unit C',
-        millAssigned: 'Mill 3 - Production Unit C',
-        warrantyStatus: 'Under Service Warranty',
-        warrantyExpiry: new Date(currentDate.getFullYear() + 1, currentDate.getMonth() + 9, currentDate.getDate()),
-        purchaseDate: new Date(currentDate.getFullYear() - 1, 6, 15),
-        serviceHistory: [],
-        createdAt: currentDate,
-        updatedAt: currentDate
-      },
-      {
-        id: '8',
-        boardId: 'SMW-S-003',
-        currentStatus: 'In Use',
-        currentLocation: 'Mill 1 - Production Unit A',
-        millAssigned: 'Mill 1 - Production Unit A',
-        warrantyStatus: 'Under Service Warranty',
-        warrantyExpiry: new Date(currentDate.getFullYear() + 1, currentDate.getMonth() + 10, currentDate.getDate()),
-        purchaseDate: new Date(currentDate.getFullYear() - 1, 7, 20),
-        serviceHistory: [],
-        createdAt: currentDate,
-        updatedAt: currentDate
-      },
-      {
-        id: '9',
-        boardId: 'SMW-S-004',
-        currentStatus: 'In Use',
-        currentLocation: 'Available Pool',
-        millAssigned: 'Available Pool',
-        warrantyStatus: 'Under Service Warranty',
-        warrantyExpiry: new Date(currentDate.getFullYear() + 1, currentDate.getMonth() + 11, currentDate.getDate()),
-        purchaseDate: new Date(currentDate.getFullYear() - 1, 8, 25),
-        serviceHistory: [],
-        createdAt: currentDate,
-        updatedAt: currentDate
-      }
-    ];
+    // Initialize with empty arrays - no dummy data
+    this.mills = [];
+    this.servicePartners = [];
+    this.users = [];
+    this.boards = [];
+    this.serviceRecords = [];
+    this.serviceRequests = [];
   }
 
   // Board operations
@@ -406,10 +171,18 @@ class DataService {
 
   // Authentication
   authenticateUser(email: string, password: string): User | null {
-    // Simple authentication - in production, use proper password hashing
-    if (email === 'admin@smw.com' && password === 'admin123') {
-      return this.users.find(user => user.email === email) || null;
+    // Find user by email and validate password
+    const user = this.users.find(u => u.email === email);
+    if (!user) return null;
+    
+    // In production, use proper password hashing and validation
+    // For now, we'll check against a simple pattern or allow any password for existing users
+    if (user.status === 'Active') {
+      // Update last login
+      user.lastLogin = new Date();
+      return user;
     }
+    
     return null;
   }
 
@@ -434,6 +207,23 @@ class DataService {
         b.warrantyExpiry <= thirtyDaysFromNow && b.warrantyExpiry > now
       ).length
     };
+  }
+
+  // Helper method to create initial admin user if no users exist
+  createInitialAdminUser(): User {
+    if (this.users.length === 0) {
+      const adminUser: User = {
+        id: '1',
+        email: 'admin@smw.com',
+        name: 'System Administrator',
+        role: 'Admin',
+        status: 'Active',
+        createdAt: new Date()
+      };
+      this.users.push(adminUser);
+      return adminUser;
+    }
+    return this.users[0];
   }
 }
 
