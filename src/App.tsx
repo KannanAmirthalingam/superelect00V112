@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from './hooks/useAuth';
+import { useAuth } from './hooks/useAuth.tsx';
 import { Login } from './components/Login';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';

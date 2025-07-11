@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CircuitBoard, User, Lock, Eye, EyeOff, Loader } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth.tsx';
 
 export const Login: React.FC = () => {
   const { signIn } = useAuth();
