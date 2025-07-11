@@ -13,9 +13,11 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onViewChange }) => 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'boards', label: 'Boards' },
-    { id: 'service', label: 'Service' },
+    { id: 'service-request', label: 'Service Request' },
+    { id: 'inward-entry', label: 'Inward Entry' },
     { id: 'reports', label: 'Reports' },
     { id: 'master', label: 'Master Data' },
+    { id: 'users', label: 'Users' },
   ];
 
   const handleSignOut = async () => {

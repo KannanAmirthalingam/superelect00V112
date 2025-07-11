@@ -4,9 +4,11 @@ import { Login } from './components/Login';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { BoardManagement } from './components/BoardManagement';
-import { ServiceManagement } from './components/ServiceManagement';
+import { ServiceRequest } from './components/ServiceRequest';
+import { InwardEntry } from './components/InwardEntry';
 import { Reports } from './components/Reports';
 import { MasterData } from './components/MasterData';
+import { UserRoles } from './components/UserRoles';
 import { useInitializeData } from './hooks/useFirebaseData';
 import { Loader, AlertCircle } from 'lucide-react';
 
@@ -38,12 +40,16 @@ function App() {
         return <Dashboard />;
       case 'boards':
         return <BoardManagement />;
-      case 'service':
-        return <ServiceManagement />;
+      case 'service-request':
+        return <ServiceRequest />;
+      case 'inward-entry':
+        return <InwardEntry />;
       case 'reports':
         return <Reports />;
       case 'master':
         return <MasterData />;
+      case 'users':
+        return <UserRoles />;
       default:
         return <Dashboard />;
     }

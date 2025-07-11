@@ -39,8 +39,8 @@ export const Dashboard: React.FC = () => {
       inRepair: boards.filter(b => b.currentStatus === 'In Repair').length,
       substituteActive: boards.filter(b => b.substituteBoard).length,
       overdueReturns: boards.filter(b => 
-        b.currentStatus === 'Repaired' && 
-        new Date(b.updatedAt).getTime() < now.getTime() - 7 * 24 * 60 * 60 * 1000
+        (b.currentStatus === 'Sent for Service' || b.currentStatus === 'In Repair') && 
+        new Date(b.updatedAt).getTime() < now.getTime() - 14 * 24 * 60 * 60 * 1000
       ).length,
       warrantyExpiring: boards.filter(b => 
         b.warrantyExpiry <= thirtyDaysFromNow && b.warrantyExpiry > now
