@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from './hooks/useAuth';
 import { Login } from './components/Login';
 import { Header } from './components/Header';
@@ -9,13 +9,11 @@ import { InwardEntry } from './components/InwardEntry';
 import { Reports } from './components/Reports';
 import { MasterData } from './components/MasterData';
 import { UserRoles } from './components/UserRoles';
-import { useInitializeData } from './hooks/useFirebaseData';
 import { Loader, AlertCircle } from 'lucide-react';
 
 function App() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
-  const { initialized, loading } = useInitializeData();
 
   // Show login if not authenticated
   if (authLoading) {
@@ -54,30 +52,6 @@ function App() {
         return <Dashboard />;
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Initializing SMW System</h2>
-          <p className="text-gray-600">Setting up master data and connecting to Firebase...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!initialized) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Initialization Failed</h2>
-          <p className="text-gray-600">Failed to initialize the system. Please check your Firebase configuration.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">

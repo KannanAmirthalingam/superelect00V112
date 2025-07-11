@@ -10,22 +10,25 @@ import {
   FileText,
   User,
   Calendar,
-  Loader,
-  X,
-  Save
+  Save,
+  X
 } from 'lucide-react';
-import { useBoards, useMills, useServicePartners } from '../hooks/useFirebaseData';
+import { dataService } from '../services/dataService';
 import { Board } from '../types';
 import { format, differenceInDays } from 'date-fns';
 
 export const InwardEntry: React.FC = () => {
-  const { boards, updateBoard, loading } = useBoards();
-  const { mills } = useMills();
-  const { servicePartners } = useServicePartners();
+  const [boards, setBoards] = useState(dataService.getBoards());
+  const mills = dataService.getMills();
+  const servicePartners = dataService.getServicePartners();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
+
+  const refreshBoards = () => {
+    setBoards(dataService.getBoards());
+  };
 
   // Get boards that are in service (Sent for Service, In Repair, Repaired)
   const serviceBoards = boards.filter(board => 
@@ -102,19 +105,42 @@ export const InwardEntry: React.FC = () => {
           updates.substituteBoard = undefined;
         }
 
-        await updateBoard(board.id, updates);
+        dataService.updateBoard(board.id, updates);
 
         // If substitute board was used, update its status back to available
         if (board.substituteBoard && formData.returnSubstitute) {
           const substituteBoard = boards.find(b => b.boardId === board.substituteBoard);
           if (substituteBoard) {
-            await updateBoard(substituteBoard.id, {
-              currentLocation: substituteBoard.millAssigned,
+            dataService.updateBoard(substituteBoard.id, {
+              currentLocation: 'Available Pool',
               updatedAt: new Date()
             });
           }
         }
 
+        // Add service record to history
+        const serviceRecord = {
+          id: Date.now().toString(),
+          boardId: board.boardId,
+          serviceDate: new Date(),
+          issueReported: 'Service completed',
+          servicePartner: board.currentLocation,
+          actionTaken: formData.serviceNotes,
+          timeTaken: parseInt(formData.actualDays) || daysInService,
+          cost: parseFloat(formData.serviceCost) || undefined,
+          status: 'Completed' as const,
+          priority: 'Medium' as const
+        };
+
+        // Update board with service history
+        const updatedBoard = dataService.getBoardById(board.id);
+        if (updatedBoard) {
+          dataService.updateBoard(board.id, {
+            serviceHistory: [...updatedBoard.serviceHistory, serviceRecord]
+          });
+        }
+
+        refreshBoards();
         onClose();
       } catch (error) {
         console.error('Failed to process inward entry:', error);
@@ -296,7 +322,6 @@ export const InwardEntry: React.FC = () => {
                 disabled={submitting}
                 className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center transition-colors"
               >
-                {submitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
                 <Save className="h-4 w-4 mr-2" />
                 Process Inward Entry
               </button>
@@ -366,15 +391,6 @@ export const InwardEntry: React.FC = () => {
       </div>
     );
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader className="h-8 w-8 animate-spin text-blue-600" />
-        <span className="ml-2 text-gray-600">Loading service boards...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

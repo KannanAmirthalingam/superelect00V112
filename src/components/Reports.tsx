@@ -8,22 +8,18 @@ import {
   AlertTriangle,
   BarChart3,
   FileText,
-  Loader,
   FileSpreadsheet
 } from 'lucide-react';
-import { useBoards, useMills, useServicePartners } from '../hooks/useFirebaseData';
+import { dataService } from '../services/dataService';
 import { format, subDays, isAfter, isBefore } from 'date-fns';
-import { exportToExcel } from '../utils/excelExport';
 
 export const Reports: React.FC = () => {
-  const { boards, loading: boardsLoading } = useBoards();
-  const { mills, loading: millsLoading } = useMills();
-  const { servicePartners, loading: partnersLoading } = useServicePartners();
+  const boards = dataService.getBoards();
+  const mills = dataService.getMills();
+  const servicePartners = dataService.getServicePartners();
   
   const [dateRange, setDateRange] = useState('last30days');
   const [reportType, setReportType] = useState('overview');
-
-  const loading = boardsLoading || millsLoading || partnersLoading;
 
   const getDateRange = () => {
     const now = new Date();
@@ -61,7 +57,7 @@ export const Reports: React.FC = () => {
     const completedServices = filteredBoards.filter(b => b.currentStatus === 'Repaired').length;
     const completionRate = totalServices > 0 ? (completedServices / totalServices) * 100 : 0;
 
-    // Calculate average repair time (mock calculation)
+    // Calculate average repair time
     const avgRepairTime = servicePartners.reduce((sum, partner) => sum + partner.avgRepairTime, 0) / servicePartners.length;
 
     const substituteUsage = boards.filter(b => b.substituteBoard).length;
@@ -146,7 +142,19 @@ export const Reports: React.FC = () => {
       generatedAt: new Date().toISOString(),
       dateRange,
       reportType,
-      data: reportData
+      data: reportData,
+      boards: boards.map(board => ({
+        boardId: board.boardId,
+        status: board.currentStatus,
+        location: board.currentLocation,
+        mill: board.millAssigned,
+        warrantyStatus: board.warrantyStatus,
+        purchaseDate: format(board.purchaseDate, 'yyyy-MM-dd'),
+        warrantyExpiry: format(board.warrantyExpiry, 'yyyy-MM-dd'),
+        substituteBoard: board.substituteBoard,
+        serviceHistory: board.serviceHistory.length,
+        lastUpdated: format(board.updatedAt, 'yyyy-MM-dd HH:mm')
+      }))
     };
 
     const blob = new Blob([JSON.stringify(reportContent, null, 2)], {
@@ -163,46 +171,56 @@ export const Reports: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const exportToExcelReport = () => {
-    exportToExcel.serviceReport(boards, mills, servicePartners);
-  };
+  const exportToCSV = () => {
+    const csvData = boards.map(board => ({
+      'Board ID': board.boardId,
+      'Status': board.currentStatus,
+      'Current Location': board.currentLocation,
+      'Mill Assigned': board.millAssigned,
+      'Warranty Status': board.warrantyStatus,
+      'Purchase Date': format(board.purchaseDate, 'yyyy-MM-dd'),
+      'Warranty Expiry': format(board.warrantyExpiry, 'yyyy-MM-dd'),
+      'Substitute Board': board.substituteBoard || 'N/A',
+      'Service History Count': board.serviceHistory.length,
+      'Last Updated': format(board.updatedAt, 'yyyy-MM-dd HH:mm')
+    }));
 
-  const exportBoardsOnly = () => {
-    exportToExcel.boards(boards, 'boards-report');
-  };
+    const headers = Object.keys(csvData[0]);
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => headers.map(header => `"${row[header as keyof typeof row]}"`).join(','))
+    ].join('\n');
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader className="h-8 w-8 animate-spin text-blue-600" />
-        <span className="ml-2 text-gray-600">Loading reports...</span>
-      </div>
-    );
-  }
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `smw-boards-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Reports & Analytics</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Reports & Analytics</h2>
+          <p className="text-gray-600 mt-1">Comprehensive insights and data export</p>
+        </div>
         <div className="flex space-x-3">
           <button 
-            onClick={exportBoardsOnly}
+            onClick={exportToCSV}
             className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
           >
             <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Export Boards Excel
-          </button>
-          <button 
-            onClick={exportToExcelReport}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Export Complete Excel
+            Export CSV
           </button>
           <button 
             onClick={exportReport}
-            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
             <Download className="h-4 w-4 mr-2" />
             Export JSON
@@ -277,18 +295,18 @@ export const Reports: React.FC = () => {
       {/* Vendor Performance */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Vendor Performance</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Service Partner Performance</h3>
         </div>
         <div className="p-6">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Vendor</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Services</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Partner</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Current Services</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Avg Time</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Rating</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Performance</th>
                 </tr>
               </thead>
               <tbody>
@@ -324,10 +342,10 @@ export const Reports: React.FC = () => {
       {/* Mill Performance */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Mill Performance</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Mill Performance Analysis</h3>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {reportData.mills.map((mill) => (
               <div key={mill.id} className="p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
                 <h4 className="font-medium text-gray-900 mb-3">{mill.name}</h4>
@@ -346,7 +364,13 @@ export const Reports: React.FC = () => {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Service Rate:</span>
-                    <span className="font-medium">{mill.serviceRate.toFixed(1)}%</span>
+                    <span className={`font-medium ${
+                      mill.serviceRate > 30 ? 'text-red-600' :
+                      mill.serviceRate > 15 ? 'text-yellow-600' :
+                      'text-green-600'
+                    }`}>
+                      {mill.serviceRate.toFixed(1)}%
+                    </span>
                   </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-gray-100">
@@ -370,14 +394,17 @@ export const Reports: React.FC = () => {
             <div className="text-center">
               <div className="text-3xl font-bold text-green-600">{reportData.warranty.underWarranty}</div>
               <div className="text-sm text-gray-500">Under Warranty</div>
+              <div className="mt-2 text-xs text-gray-400">Active coverage</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-yellow-600">{reportData.warranty.expiringSoon}</div>
               <div className="text-sm text-gray-500">Expiring Soon</div>
+              <div className="mt-2 text-xs text-gray-400">Within 30 days</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-red-600">{reportData.warranty.expired}</div>
               <div className="text-sm text-gray-500">Expired</div>
+              <div className="mt-2 text-xs text-gray-400">No coverage</div>
             </div>
           </div>
         </div>
@@ -404,6 +431,11 @@ export const Reports: React.FC = () => {
                       {format(board.updatedAt, 'MMM dd, yyyy HH:mm')}
                     </p>
                   </div>
+                  {board.substituteBoard && (
+                    <div className="text-xs text-blue-600">
+                      Substitute: {board.substituteBoard}
+                    </div>
+                  )}
                 </div>
               ))}
           </div>

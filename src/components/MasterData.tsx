@@ -11,16 +11,14 @@ import {
   Star,
   Clock,
   Save,
-  X,
-  Loader
+  X
 } from 'lucide-react';
-import { useMills, useServicePartners } from '../hooks/useFirebaseData';
-import { millService, servicePartnerService } from '../services/firebaseService';
+import { dataService } from '../services/dataService';
 import { Mill, ServicePartner } from '../types';
 
 export const MasterData: React.FC = () => {
-  const { mills, loading: millsLoading } = useMills();
-  const { servicePartners, loading: partnersLoading } = useServicePartners();
+  const [mills, setMills] = useState(dataService.getMills());
+  const [servicePartners, setServicePartners] = useState(dataService.getServicePartners());
   
   const [activeTab, setActiveTab] = useState<'mills' | 'partners'>('mills');
   const [showMillForm, setShowMillForm] = useState(false);
@@ -28,7 +26,10 @@ export const MasterData: React.FC = () => {
   const [editingMill, setEditingMill] = useState<Mill | null>(null);
   const [editingPartner, setEditingPartner] = useState<ServicePartner | null>(null);
 
-  const loading = millsLoading || partnersLoading;
+  const refreshData = () => {
+    setMills(dataService.getMills());
+    setServicePartners(dataService.getServicePartners());
+  };
 
   const MillForm: React.FC<{ 
     mill?: Mill; 
@@ -39,7 +40,8 @@ export const MasterData: React.FC = () => {
       name: mill?.name || '',
       location: mill?.location || '',
       contactPerson: mill?.contactPerson || '',
-      phone: mill?.phone || ''
+      phone: mill?.phone || '',
+      email: mill?.email || ''
     });
     const [submitting, setSubmitting] = useState(false);
 
@@ -49,9 +51,9 @@ export const MasterData: React.FC = () => {
 
       try {
         if (mill) {
-          await millService.update(mill.id, formData);
+          dataService.updateMill(mill.id, formData);
         } else {
-          await millService.add(formData);
+          dataService.addMill(formData);
         }
         onSave();
         onClose();
@@ -113,6 +115,16 @@ export const MasterData: React.FC = () => {
                 placeholder="e.g., +91-9876543214"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., contact@mill.com"
+              />
+            </div>
             <div className="flex justify-end space-x-3 pt-4">
               <button
                 type="button"
@@ -127,7 +139,7 @@ export const MasterData: React.FC = () => {
                 disabled={submitting}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center"
               >
-                {submitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
+                <Save className="h-4 w-4 mr-2" />
                 {mill ? 'Update' : 'Add'} Mill
               </button>
             </div>
@@ -149,7 +161,8 @@ export const MasterData: React.FC = () => {
       email: partner?.email || '',
       address: partner?.address || '',
       rating: partner?.rating || 4.0,
-      avgRepairTime: partner?.avgRepairTime || 5
+      avgRepairTime: partner?.avgRepairTime || 5,
+      specialization: partner?.specialization?.join(', ') || ''
     });
     const [submitting, setSubmitting] = useState(false);
 
@@ -158,10 +171,15 @@ export const MasterData: React.FC = () => {
       setSubmitting(true);
 
       try {
+        const partnerData = {
+          ...formData,
+          specialization: formData.specialization.split(',').map(s => s.trim()).filter(s => s)
+        };
+
         if (partner) {
-          await servicePartnerService.update(partner.id, formData);
+          dataService.updateServicePartner(partner.id, partnerData);
         } else {
-          await servicePartnerService.add(formData);
+          dataService.addServicePartner(partnerData);
         }
         onSave();
         onClose();
@@ -234,6 +252,17 @@ export const MasterData: React.FC = () => {
                 placeholder="Complete address"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
+              <input
+                type="text"
+                value={formData.specialization}
+                onChange={(e) => setFormData({...formData, specialization: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Power Supply, Control Boards, Display Units"
+              />
+              <p className="text-xs text-gray-500 mt-1">Separate multiple specializations with commas</p>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
@@ -274,7 +303,7 @@ export const MasterData: React.FC = () => {
                 disabled={submitting}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center"
               >
-                {submitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
+                <Save className="h-4 w-4 mr-2" />
                 {partner ? 'Update' : 'Add'} Partner
               </button>
             </div>
@@ -284,40 +313,28 @@ export const MasterData: React.FC = () => {
     );
   };
 
-  const deleteMill = async (id: string) => {
+  const deleteMill = (id: string) => {
     if (window.confirm('Are you sure you want to delete this mill?')) {
-      try {
-        await millService.delete(id);
-      } catch (error) {
-        console.error('Failed to delete mill:', error);
-      }
+      dataService.deleteMill(id);
+      refreshData();
     }
   };
 
-  const deletePartner = async (id: string) => {
+  const deletePartner = (id: string) => {
     if (window.confirm('Are you sure you want to delete this service partner?')) {
-      try {
-        await servicePartnerService.delete(id);
-      } catch (error) {
-        console.error('Failed to delete service partner:', error);
-      }
+      dataService.deleteServicePartner(id);
+      refreshData();
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader className="h-8 w-8 animate-spin text-blue-600" />
-        <span className="ml-2 text-gray-600">Loading master data...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Master Data Management</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Master Data Management</h2>
+          <p className="text-gray-600 mt-1">Manage mills and service partners</p>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -382,6 +399,12 @@ export const MasterData: React.FC = () => {
                             <Phone className="h-4 w-4 mr-1" />
                             {mill.phone}
                           </div>
+                          {mill.email && (
+                            <div className="flex items-center">
+                              <Mail className="h-4 w-4 mr-1" />
+                              {mill.email}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex space-x-2">
@@ -448,10 +471,19 @@ export const MasterData: React.FC = () => {
                             {partner.avgRepairTime} days avg
                           </div>
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-gray-600 mb-2">
                           <MapPin className="h-4 w-4 inline mr-1" />
                           {partner.address}
                         </div>
+                        {partner.specialization && partner.specialization.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {partner.specialization.map((spec, index) => (
+                              <span key={index} className="inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                                {spec}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="flex space-x-2">
                         <button
@@ -480,27 +512,27 @@ export const MasterData: React.FC = () => {
       {showMillForm && (
         <MillForm 
           onClose={() => setShowMillForm(false)} 
-          onSave={() => window.location.reload()}
+          onSave={refreshData}
         />
       )}
       {editingMill && (
         <MillForm 
           mill={editingMill}
           onClose={() => setEditingMill(null)} 
-          onSave={() => window.location.reload()}
+          onSave={refreshData}
         />
       )}
       {showPartnerForm && (
         <PartnerForm 
           onClose={() => setShowPartnerForm(false)} 
-          onSave={() => window.location.reload()}
+          onSave={refreshData}
         />
       )}
       {editingPartner && (
         <PartnerForm 
           partner={editingPartner}
           onClose={() => setEditingPartner(null)} 
-          onSave={() => window.location.reload()}
+          onSave={refreshData}
         />
       )}
     </div>

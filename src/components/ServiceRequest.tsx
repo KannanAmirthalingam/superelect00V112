@@ -8,23 +8,28 @@ import {
   Calendar,
   User,
   FileText,
-  Loader,
+  CheckCircle,
+  Clock,
   X,
-  CheckCircle
+  Save
 } from 'lucide-react';
-import { useBoards, useMills, useServicePartners } from '../hooks/useFirebaseData';
-import { Board } from '../types';
-import { format } from 'date-fns';
+import { dataService } from '../services/dataService';
+import { Board, ServiceRequest as ServiceRequestType } from '../types';
+import { format, addDays } from 'date-fns';
 
 export const ServiceRequest: React.FC = () => {
-  const { boards, updateBoard, loading } = useBoards();
-  const { mills } = useMills();
-  const { servicePartners } = useServicePartners();
+  const [boards, setBoards] = useState(dataService.getBoards());
+  const mills = dataService.getMills();
+  const servicePartners = dataService.getServicePartners();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [millFilter, setMillFilter] = useState('all');
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
+
+  const refreshBoards = () => {
+    setBoards(dataService.getBoards());
+  };
 
   // Get boards that are available for service (In Use status)
   const availableBoards = boards.filter(board => board.currentStatus === 'In Use');
@@ -51,10 +56,10 @@ export const ServiceRequest: React.FC = () => {
     });
     const [submitting, setSubmitting] = useState(false);
 
-    // Get available substitute boards (boards with SMW-S- prefix that are not in use)
+    // Get available substitute boards (boards with SMW-S- prefix that are available)
     const availableSubstitutes = boards.filter(b => 
       b.boardId.startsWith('SMW-S-') && 
-      b.currentStatus === 'In Use' && 
+      (b.currentStatus === 'In Use' && b.currentLocation === 'Available Pool') &&
       !boards.some(board => board.substituteBoard === b.boardId)
     );
 
@@ -66,7 +71,7 @@ export const ServiceRequest: React.FC = () => {
         const selectedBoard = boards.find(b => b.boardId === formData.boardId);
         if (selectedBoard) {
           // Update the main board status
-          await updateBoard(selectedBoard.id, {
+          dataService.updateBoard(selectedBoard.id, {
             currentStatus: 'Sent for Service',
             currentLocation: formData.servicePartner,
             substituteBoard: formData.substituteBoard || undefined,
@@ -77,12 +82,30 @@ export const ServiceRequest: React.FC = () => {
           if (formData.substituteBoard) {
             const substituteBoard = boards.find(b => b.boardId === formData.substituteBoard);
             if (substituteBoard) {
-              await updateBoard(substituteBoard.id, {
+              dataService.updateBoard(substituteBoard.id, {
                 currentLocation: formData.millName,
                 updatedAt: new Date()
               });
             }
           }
+
+          // Create service request record
+          const serviceRequest: Omit<ServiceRequestType, 'id'> = {
+            boardId: formData.boardId,
+            millName: formData.millName,
+            issueReported: formData.issueDescription,
+            servicePartner: formData.servicePartner,
+            status: 'Pending',
+            priority: formData.priority,
+            dateRequested: new Date(),
+            expectedCompletion: addDays(new Date(), parseInt(formData.expectedDays)),
+            substituteBoard: formData.substituteBoard || undefined,
+            createdBy: 'Current User', // In real app, get from auth context
+            updatedAt: new Date()
+          };
+
+          dataService.addServiceRequest(serviceRequest);
+          refreshBoards();
         }
         onClose();
       } catch (error) {
@@ -163,7 +186,7 @@ export const ServiceRequest: React.FC = () => {
                   <option value="">Select Service Partner</option>
                   {servicePartners.map(partner => (
                     <option key={partner.id} value={partner.name}>
-                      {partner.name} (Avg: {partner.avgRepairTime} days)
+                      {partner.name} (Avg: {partner.avgRepairTime} days, Rating: {partner.rating}★)
                     </option>
                   ))}
                 </select>
@@ -244,7 +267,6 @@ export const ServiceRequest: React.FC = () => {
                 disabled={submitting || !formData.boardId || !formData.servicePartner}
                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center transition-colors"
               >
-                {submitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
                 <Send className="h-4 w-4 mr-2" />
                 Create Service Request
               </button>
@@ -265,6 +287,12 @@ export const ServiceRequest: React.FC = () => {
       }
     };
 
+    const isWarrantyExpiringSoon = () => {
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      return board.warrantyExpiry <= thirtyDaysFromNow && board.warrantyExpiry > new Date();
+    };
+
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start mb-4">
@@ -279,6 +307,11 @@ export const ServiceRequest: React.FC = () => {
             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getWarrantyColor(board.warrantyStatus)}`}>
               {board.warrantyStatus}
             </span>
+            {isWarrantyExpiringSoon() && (
+              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                Warranty Expiring
+              </span>
+            )}
           </div>
         </div>
 
@@ -307,15 +340,6 @@ export const ServiceRequest: React.FC = () => {
       </div>
     );
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader className="h-8 w-8 animate-spin text-blue-600" />
-        <span className="ml-2 text-gray-600">Loading boards...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

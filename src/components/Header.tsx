@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings, Bell, User, LogOut, Database } from 'lucide-react';
+import { Settings, Bell, User, LogOut, CircuitBoard } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 interface HeaderProps {
@@ -33,9 +33,12 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onViewChange }) => 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-gray-900">SMW</h1>
-              <p className="text-xs text-gray-500">Board Tracker</p>
+            <div className="flex-shrink-0 flex items-center">
+              <CircuitBoard className="h-8 w-8 text-blue-600 mr-3" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">SMW</h1>
+                <p className="text-xs text-gray-500">Board Tracker</p>
+              </div>
             </div>
             <nav className="ml-10 flex space-x-8">
               {navItems.map((item) => (
@@ -55,12 +58,12 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onViewChange }) => 
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-sm text-gray-600">
-              Welcome, {user?.email}
+              Welcome, {user?.name || user?.email}
             </div>
-            <button className="p-2 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100">
+            <button className="p-2 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors">
               <Bell className="h-5 w-5" />
             </button>
-            <button className="p-2 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100">
+            <button className="p-2 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors">
               <Settings className="h-5 w-5" />
             </button>
             <button 

@@ -9,69 +9,22 @@ import {
   UserCheck,
   UserX,
   Settings,
-  Loader,
   X,
   Save
 } from 'lucide-react';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'Admin' | 'Mill Supervisor' | 'Service Partner' | 'Viewer';
-  status: 'Active' | 'Inactive';
-  mill?: string;
-  servicePartner?: string;
-  lastLogin?: Date;
-  createdAt: Date;
-}
+import { dataService } from '../services/dataService';
+import { User } from '../types';
 
 export const UserRoles: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: '1',
-      email: 'admin@smw.com',
-      name: 'System Administrator',
-      role: 'Admin',
-      status: 'Active',
-      lastLogin: new Date(),
-      createdAt: new Date('2024-01-01')
-    },
-    {
-      id: '2',
-      email: 'mill1@smw.com',
-      name: 'Rajesh Kumar',
-      role: 'Mill Supervisor',
-      status: 'Active',
-      mill: 'Mill 1 - Production Unit A',
-      lastLogin: new Date(),
-      createdAt: new Date('2024-01-15')
-    },
-    {
-      id: '3',
-      email: 'service@superelectronics.com',
-      name: 'Vikram Mehta',
-      role: 'Service Partner',
-      status: 'Active',
-      servicePartner: 'Super Electronics',
-      lastLogin: new Date(),
-      createdAt: new Date('2024-02-01')
-    },
-    {
-      id: '4',
-      email: 'viewer@smw.com',
-      name: 'Priya Sharma',
-      role: 'Viewer',
-      status: 'Active',
-      lastLogin: new Date(),
-      createdAt: new Date('2024-02-15')
-    }
-  ]);
-
+  const [users, setUsers] = useState(dataService.getUsers());
   const [showUserForm, setShowUserForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+
+  const refreshUsers = () => {
+    setUsers(dataService.getUsers());
+  };
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -155,6 +108,12 @@ export const UserRoles: React.FC = () => {
           lastLogin: user?.lastLogin,
           createdAt: user?.createdAt || new Date()
         };
+
+        if (user) {
+          dataService.updateUser(user.id, formData);
+        } else {
+          dataService.addUser(userData);
+        }
 
         onSave(userData);
         onClose();
@@ -286,7 +245,6 @@ export const UserRoles: React.FC = () => {
                 disabled={submitting}
                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center transition-colors"
               >
-                {submitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
                 <Save className="h-4 w-4 mr-2" />
                 {user ? 'Update User' : 'Create User'}
               </button>
@@ -298,25 +256,24 @@ export const UserRoles: React.FC = () => {
   };
 
   const handleSaveUser = (userData: User) => {
-    if (editingUser) {
-      setUsers(users.map(u => u.id === userData.id ? userData : u));
-    } else {
-      setUsers([...users, userData]);
-    }
+    refreshUsers();
   };
 
   const handleDeleteUser = (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(users.filter(u => u.id !== userId));
+      dataService.deleteUser(userId);
+      refreshUsers();
     }
   };
 
   const toggleUserStatus = (userId: string) => {
-    setUsers(users.map(u => 
-      u.id === userId 
-        ? { ...u, status: u.status === 'Active' ? 'Inactive' : 'Active' }
-        : u
-    ));
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      dataService.updateUser(userId, {
+        status: user.status === 'Active' ? 'Inactive' : 'Active'
+      });
+      refreshUsers();
+    }
   };
 
   return (
