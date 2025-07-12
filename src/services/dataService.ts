@@ -397,12 +397,7 @@ class DataService {
       console.log('➕ Adding new service request for board:', request.boardId);
       const requestData = prepareForFirestore(request);
       const docRef = await addDoc(collection(db, COLLECTIONS.SERVICE_REQUESTS), requestData);
-      // Remove undefined values before sending to Firestore
-      const cleanServiceRequest = Object.fromEntries(
-        Object.entries(serviceRequest).filter(([_, value]) => value !== undefined)
-      );
-      
-      const docRef = await addDoc(collection(db, 'serviceRequests'), cleanServiceRequest);
+      const newRequest: ServiceRequest = { ...request, id: docRef.id };
       console.log('✅ Service request added successfully:', docRef.id);
       return newRequest;
     } catch (error) {
