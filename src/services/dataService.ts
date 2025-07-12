@@ -267,18 +267,22 @@ class DataService {
   async updateBoard(id: string, updates: Partial<Board>): Promise<Board | null> {
     try {
       console.log('📝 Updating board:', id);
+      
+      // Get the current board from local cache
+      const currentBoard = this.boards.find(board => board.id === id);
+      if (!currentBoard) {
+        console.log('❌ Board not found in local cache:', id);
+        return null;
+      }
+      
       const boardRef = doc(db, COLLECTIONS.BOARDS, id);
       const updateData = prepareForFirestore(updates);
       await updateDoc(boardRef, updateData);
-      // Remove undefined values before sending to Firestore
-      const cleanUpdates = Object.fromEntries(
-        Object.entries(updates).filter(([_, value]) => value !== undefined)
-      );
       
-      
-      await updateDoc(boardRef, cleanUpdates);
+      // Create the updated board object
+      const updatedBoard = { ...currentBoard, ...updates };
       console.log('✅ Board updated successfully:', id);
-      return updatedBoard ? { ...updatedBoard, ...updates } : null;
+      return updatedBoard;
     } catch (error) {
       console.error('❌ Error updating board:', error);
       throw new Error(`Failed to update board: ${error instanceof Error ? error.message : 'Unknown error'}`);
