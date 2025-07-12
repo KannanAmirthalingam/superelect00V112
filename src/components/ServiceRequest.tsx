@@ -83,6 +83,7 @@ export const ServiceRequest: React.FC = () => {
             currentStatus: 'Sent for Service',
             currentLocation: formData.servicePartner,
             substituteBoard: formData.substituteBoard || undefined,
+            substituteBoard: formData.substituteBoard || null,
             updatedAt: new Date()
           });
 
@@ -107,7 +108,7 @@ export const ServiceRequest: React.FC = () => {
             priority: formData.priority,
             dateRequested: new Date(),
             expectedCompletion: addDays(new Date(), parseInt(formData.expectedDays)),
-            substituteBoard: formData.substituteBoard || undefined,
+            substituteBoard: formData.substituteBoard || null,
             createdBy: 'Current User', // In real app, get from auth context
             updatedAt: new Date()
           };

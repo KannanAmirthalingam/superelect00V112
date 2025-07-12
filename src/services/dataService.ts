@@ -270,8 +270,13 @@ class DataService {
       const boardRef = doc(db, COLLECTIONS.BOARDS, id);
       const updateData = prepareForFirestore(updates);
       await updateDoc(boardRef, updateData);
+      // Remove undefined values before sending to Firestore
+      const cleanUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([_, value]) => value !== undefined)
+      );
       
-      const updatedBoard = this.boards.find(board => board.id === id);
+      
+      await updateDoc(boardRef, cleanUpdates);
       console.log('✅ Board updated successfully:', id);
       return updatedBoard ? { ...updatedBoard, ...updates } : null;
     } catch (error) {
@@ -392,7 +397,12 @@ class DataService {
       console.log('➕ Adding new service request for board:', request.boardId);
       const requestData = prepareForFirestore(request);
       const docRef = await addDoc(collection(db, COLLECTIONS.SERVICE_REQUESTS), requestData);
-      const newRequest: ServiceRequest = { ...request, id: docRef.id };
+      // Remove undefined values before sending to Firestore
+      const cleanServiceRequest = Object.fromEntries(
+        Object.entries(serviceRequest).filter(([_, value]) => value !== undefined)
+      );
+      
+      const docRef = await addDoc(collection(db, 'serviceRequests'), cleanServiceRequest);
       console.log('✅ Service request added successfully:', docRef.id);
       return newRequest;
     } catch (error) {
